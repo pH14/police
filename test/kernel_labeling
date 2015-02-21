@@ -1,0 +1,82 @@
+require 'minitest/spec'
+# require 'minitest/autorun'
+
+require 'test_helper'
+
+describe Police do
+  describe "Kernel Labeling" do
+    puts "Joyous."
+    let(:label1) { Police::DataFlow::Label.new "hello" }
+    let(:label2) { Police::DataFlow::Label.new "world" }
+    let(:label3) { Police::DataFlow::Label.new "!" }
+    let(:person) { Person.new name: "Paul", age: 99, email: "pwh@csail.mit.edu" }
+
+    it "sets single label" do
+      person.name.labeled?.must_equal false
+
+      person.name.label_with label1
+
+      person.name.labeled?.must_equal true
+      person.name.labels.size.must_equal 1
+      person.name.labels.include?(label1).must_equal true
+    end
+
+    it "sets many labels" do
+      person.name.labeled?.must_equal false
+
+      person.name.label_with label1
+      person.name.label_with label2
+      person.name.label_with label3
+
+      person.name.labeled?.must_equal true
+      person.name.labels.size.must_equal 3
+
+      person.name.has_labels?(label1, label2, label3).must_equal true
+    end
+
+    it "doesn't add labels it already has" do
+      person.name.label_with label1
+      person.name.label_with label2
+      person.name.label_with label1
+
+      person.name.labels.size.must_equal 2
+      person.name.has_labels?(label2, label1).must_equal true
+    end
+
+    it "can remove labels" do
+      person.name.label_with label1
+      person.name.label_with label2
+
+      person.name.labels.size.must_equal 2
+      person.name.has_labels?(label1, label2).must_equal true
+
+      person.name.remove_label label1
+      person.name.labels.size.must_equal 1
+      person.name.has_labels?(label2).must_equal true
+      person.name.has_labels?(label1).must_equal false
+
+      person.name.remove_label label2
+      person.name.labels.size.must_equal 0
+      person.name.has_labels?(label2).must_equal false
+      person.name.has_labels?(label1).must_equal false
+    end
+
+    it "can remove all labels at once" do
+      person.name.label_with label1
+      person.name.label_with label2
+      person.name.remove_label :all
+      person.name.labels.size.must_equal 0
+    end
+
+    it "can assign labels to many elements" do
+      person.name.label_with label1
+      person.email.label_with label2
+
+      person.name.labels.size.must_equal 1
+      person.email.labels.size.must_equal 1
+
+      person.name.has_label?(label1).must_equal true
+      person.email.has_label?(label2).must_equal true
+    end
+  end
+end
