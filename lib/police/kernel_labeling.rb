@@ -13,7 +13,6 @@ module Kernel
   end
 
   def label_with(label)
-    return self if not label.accepts? self
     return self if has_label? label
 
     if is_a? TrueClass or is_a? FalseClass or is_a? NilClass

@@ -86,7 +86,6 @@ describe Police do
     let(:labeled_person) do
       p = Person.new name: "Paul", age: 99, email: "pwh@csail.mit.edu"
       p.name.label_with label
-      p.email.label_with label
       p.email.label_with label2
       p
     end
@@ -190,9 +189,10 @@ describe Police do
         y.labels.size.must_equal 1
       end
 
-      describe "with many Labels" do
+      describe "with many labels" do
         it "through split" do
-          x = labeled_person.email.split(//)
+          labeled_person.name.label_with label2
+          x = labeled_person.name.split(//)
           x.labeled?.must_equal false
 
           x.each do |letter|
@@ -249,5 +249,5 @@ describe Police do
         y.labels.size.must_equal 1
       end
     end
-  end
-end
+  end # DataFlow
+end # Police

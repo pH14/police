@@ -8,7 +8,7 @@ module Police
       end
 
       def propagate(host, other)
-        other.label_with self
+        other.label_with self if accepts? other
       end
 
       # Whether or not to propagate to the other object

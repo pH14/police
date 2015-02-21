@@ -72,7 +72,6 @@ module Police
       def initialize
         # This doesn't yet cover when slice returns several arguments, not just one
         define_singleton_method("after_slice") do |obj, arg, method_args|
-          # puts "#{meth}: Post-hook running. Obj #{obj}, arg #{arg}, method args #{method_args}"
           case method_args[0]
           when String
             if method_args[0].labeled? and not arg.nil?
@@ -90,12 +89,6 @@ module Police
         # then try to print the same messag... etc. Gotta be careful with that, or create a dup without labels
         @@simple_methods.each do |meth|
           define_singleton_method("after_#{meth}") do |obj, arg, method_args|
-            # puts "#{meth}: Post-hook running. Obj #{obj}, arg #{arg}, method args #{method_args}"
-              # if meth == "dup"
-              # else
-              #   puts "#{meth}: Post-hook running. Obj #{obj.no_label_to_s}, arg #{arg.no_label_to_s}, method args #{method_args.no_label_to_s}"
-              # end
-
             if obj.is_a? Array
               if obj.empty?
                 return arg
@@ -122,7 +115,6 @@ module Police
 
         @@multiparam_methods.each do |meth|
           define_singleton_method("after_#{meth}") do |obj, args, method_args|
-            # puts "#{meth}: Post-hook running. Obj #{obj}, arg #{arg}, method args #{method_args}"
             unless obj.is_a? Enumerable
               if args.is_a? Enumerable
                 args.each do |arg|
@@ -139,7 +131,6 @@ module Police
 
         @@operator_methods.each do |meth|
           define_singleton_method("after_op__#{meth}") do |obj, args, method_args|
-            # puts "#{meth}: Post-hook running. Obj #{obj.no_label_to_s}, arg #{args.no_label_to_s}, method args #{method_args.no_label_to_s}"
             if not obj.is_a? Enumerable
               if args.is_a? Enumerable
                 args.each do |arg|
@@ -161,22 +152,6 @@ end # Police
 
 # Monkeypatches to fix cases that require standard library changes
 
-# module Rubinius
-#   module Type
-#     class << self
-#       alias_method :old_infect, :infect
-
-#       def infect(host, source)
-#         if source.respond_to? :secure_context? and source.secure_context?
-#           source.secure_context.send :hello, host, source
-#         end
-
-#         old_infect host, source
-#       end
-#     end
-#   end
-# end
-
 class String
   alias_method :old_modulo, :%
 
@@ -197,6 +172,20 @@ class String
     end
 
     ret
+  end
+
+  class << self
+    alias_method :old_interpolate_join, :interpolate_join
+
+    def interpolate_join(*s)
+      x = old_interpolate_join *s
+
+      s.each do |str|
+        s.propagate_labels x if s.labeled?
+      end
+
+      x
+    end
   end
 end
 
