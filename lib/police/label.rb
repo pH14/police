@@ -7,7 +7,7 @@ module Police
       	@payload = payload
       end
 
-      def propagate(host, other)
+      def propagate(other)
         other.label_with self if accepts? other
       end
 

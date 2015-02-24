@@ -4,11 +4,44 @@ require 'minitest/autorun'
 require 'test_helper'
 
 describe Police do
+  describe "DSL" do
+    describe "creates objects with dataflow" do
+      Person.class_eval do
+        police :name, :email, :save => (lambda do |label|
+                                            true
+        end)
+      end
+
+      let(:person) { Person.new name: "Paul", age: 99, email: "pwh@csail.mit.edu" }
+
+      it "can creates objects that work!" do
+        person.name.must_equal "Paul"
+        person.age.must_equal 99
+        person.email.must_equal "pwh@csail.mit.edu"
+      end
+
+      it "can track dataflow from new model object" do
+        x = person.name.upcase
+        x.must_equal "PAUL"
+        x.labeled?.must_equal true
+
+        y = person.email[0..2]
+        y.must_equal "pwh"
+        y.labeled?.must_equal true
+      end
+
+      it "calls a policy check at when trying to save" do
+        saved_person = person.save
+        saved_person.nil?.must_equal false
+      end
+    end
+  end
+
   describe "Kernel Labeling" do
     let(:label1) { Police::DataFlow::Label.new "hello" }
     let(:label2) { Police::DataFlow::Label.new "world" }
     let(:label3) { Police::DataFlow::Label.new "!" }
-    let(:person) { Person.new name: "Paul", age: 99, email: "pwh@csail.mit.edu" }
+    let(:person) { UnlabeledPerson.new name: "Paul", age: 99, email: "pwh@csail.mit.edu" }
 
     it "sets single label" do
       person.name.labeled?.must_equal false
@@ -82,9 +115,9 @@ describe Police do
   describe "DataFlow with Security Contexts" do
     let(:label) { Police::DataFlow::Label.new "a label" }
     let(:label2) { Police::DataFlow::Label.new "a second label" }
-    let(:person) { Person.new name: "Paul", age: 99, email: "pwh@csail.mit.edu" }
+    let(:person) { UnlabeledPerson.new name: "Paul", age: 99, email: "pwh@csail.mit.edu" }
     let(:labeled_person) do
-      p = Person.new name: "Paul", age: 99, email: "pwh@csail.mit.edu"
+      p = UnlabeledPerson.new name: "Paul", age: 99, email: "pwh@csail.mit.edu"
       p.name.label_with label
       p.email.label_with label2
       p
@@ -191,8 +224,8 @@ describe Police do
 
       describe "with many labels" do
         it "through split" do
-          labeled_person.name.label_with label2
-          x = labeled_person.name.split(//)
+          labeled_person.email.label_with label
+          x = labeled_person.email.split(//)
           x.labeled?.must_equal false
 
           x.each do |letter|

@@ -157,7 +157,6 @@ class String
 
   def %(*args)
     ret = old_modulo *args
-    propagate_labels ret
 
     unless %w(%e %E %f %g %G).include? self
       if self.eql? '%p'
@@ -172,20 +171,6 @@ class String
     end
 
     ret
-  end
-
-  class << self
-    alias_method :old_interpolate_join, :interpolate_join
-
-    def interpolate_join(*s)
-      x = old_interpolate_join *s
-
-      s.each do |str|
-        s.propagate_labels x if s.labeled?
-      end
-
-      x
-    end
   end
 end
 

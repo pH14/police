@@ -1,4 +1,4 @@
-class Person < ActiveRecord::Base
+class UnlabeledPerson < ActiveRecord::Base
   validates :name, presence: true
 
   validates_numericality_of :age
