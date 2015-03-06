@@ -18,24 +18,7 @@ module Police
       end
 
       def protected_actions
-        action_hash.keys.sort
-      end
-
-      def enforce_policy(labeled_object, *actions)
-        results = []
-
-        actions.each do |action|
-          protected_fields.each do |field|
-            # puts "checking #{action} on #{field} on object #{labeled_object}"
-            # puts "Die labels sind #{labeled_object.send(field).labels.to_a}"
-            labeled_object.send(field).labels.each do |label|
-              results << action_hash[action].call(label)
-            end
-          end
-        end
-        puts "Results are #{results}"
-
-        results.all? { |r| r == true }
+        action_hash.keys
       end
 
       def policy_for(field, action)

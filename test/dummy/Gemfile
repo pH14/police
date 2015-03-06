@@ -1,0 +1,10 @@
+source 'https://rubygems.org'
+
+gem 'rails', '>= 4.2.0'
+
+gem 'rake', '>= 10.4.2'
+
+# Core.
+gem 'sqlite3'
+gem 'authpwn_rails', '>= 0.17.1', platforms: :rbx
+gem 'psych', '2.0.13'

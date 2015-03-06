@@ -1,4 +1,12 @@
 Rails.application.routes.draw do
+  root to: 'session#show'
+  # authpwn_session
+  resources :high_scores
+
+  get 'person/index'
+
+  get 'person/show'
+
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

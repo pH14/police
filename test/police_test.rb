@@ -7,9 +7,8 @@ describe Police do
   describe "DSL" do
     describe "creates objects with dataflow" do
       Person.class_eval do
-        police :name, :email, :save => (lambda do |label|
-                                            true
-        end)
+        police :name, :write => (lambda { |obj, user| obj.name == "Paul" })
+        police :email, :read => (lambda { |obj, label| true })
       end
 
       let(:person) { Person.new name: "Paul", age: 99, email: "pwh@csail.mit.edu" }
@@ -30,9 +29,20 @@ describe Police do
         y.labeled?.must_equal true
       end
 
-      it "calls a policy check at when trying to save" do
+      it "calls a policy check when trying to save" do
         saved_person = person.save
         saved_person.nil?.must_equal false
+      end
+
+      it "calls a policy check when trying to save and fails with an invalid policy" do
+     	NewPerson = Person.dup 	
+        NewPerson.class_eval do
+          police :name, :write => (lambda { |obj, user| obj.name == "Bob" })
+          police :email, :read => (lambda { |obj, label| true })
+        end
+        person = NewPerson.new name: "Paul", age: 99, email: "pwh@csail.mit.edu"
+
+        proc { person.save }.must_raise Police::PoliceError
       end
     end
   end

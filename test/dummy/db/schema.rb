@@ -11,22 +11,49 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150223201738) do
+ActiveRecord::Schema.define(version: 20150226173230) do
 
-  create_table "people", force: true do |t|
-    t.string   "name"
-    t.integer  "age"
-    t.string   "email"
+  create_table "credentials", force: :cascade do |t|
+    t.integer  "user_id",                null: false
+    t.string   "type",       limit: 32,  null: false
+    t.string   "name",       limit: 128
+    t.datetime "updated_at",             null: false
+    t.binary   "key"
+  end
+
+  add_index "credentials", ["type", "name"], name: "index_credentials_on_type_and_name", unique: true
+  add_index "credentials", ["type", "updated_at"], name: "index_credentials_on_type_and_updated_at"
+  add_index "credentials", ["user_id", "type"], name: "index_credentials_on_user_id_and_type"
+
+  create_table "high_scores", force: :cascade do |t|
+    t.string   "game",       limit: 255
+    t.integer  "score"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  create_table "unlabeled_people", force: true do |t|
-    t.string   "name"
+  create_table "people", force: :cascade do |t|
+    t.string   "name",       limit: 255
     t.integer  "age"
-    t.string   "email"
+    t.string   "email",      limit: 255
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "unlabeled_people", force: :cascade do |t|
+    t.string   "name",       limit: 255
+    t.integer  "age"
+    t.string   "email",      limit: 255
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string   "exuid",      limit: 32, null: false
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
+  end
+
+  add_index "users", ["exuid"], name: "index_users_on_exuid", unique: true
 
 end

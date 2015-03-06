@@ -98,15 +98,15 @@ module Police
             # Range should not pass on taint to its to_s, unless the
             # begin or ending strings of it are tainted. The Range object
             # itself shouldn't pass it on.
-            if meth == "to_s"
-              if obj.is_a? Range and not arg.labeled?
-                return arg
-              end
+            # if meth == "to_s"
+            #   if obj.is_a? Range and not arg.labeled?
+            #     return arg
+            #   end
 
-              if obj.is_a? Hash and obj.empty?
-                return arg
-              end
-            end
+            #   if obj.is_a? Hash and obj.empty?
+            #     return arg
+            #   end
+            # end
 
             obj.propagate_labels arg
             arg

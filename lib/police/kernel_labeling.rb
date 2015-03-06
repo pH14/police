@@ -8,7 +8,13 @@ class Object
   end
 
   def label_with(label)
+    # puts "Trying to label #{self}, #{self.class} with a label" if not labeled?
+    # puts caller if self == "\"Paul W Hemberger\""
     return self if frozen? or nil?
+
+    if is_a? TrueClass or is_a? FalseClass or is_a? NilClass
+      return self
+    end
 
     if has_label? label and not secure_context?
       puts "Have a label but no secure context."#{}" I am #{self.no_label_to_s}"
@@ -16,11 +22,7 @@ class Object
 
     return self if has_label? label
 
-    # puts "Trying to label"
-
-    if is_a? TrueClass or is_a? FalseClass or is_a? NilClass
-      return self
-    end
+    # puts "Setting a label #{label} on a #{self.class}"#{self.no_label_to_s}"
 
     if not secure_context?
       # puts "setting secure context"
@@ -28,16 +30,19 @@ class Object
     end
 
     @labels ||= Set.new
-    @labels << label
+    # puts "@labels established"
+    @labels.add label
 
     # puts "Setting a label on #{self.no_label_to_s}"
-    # puts "Setting a label"
+    # puts "Label has been set!!"
 
     self
   end
 
   def propagate_labels(other)
-    @labels.each { |label| label.propagate other } if labeled?
+    @labels.each { |label| 
+      puts "Pushing a label #{label}"
+      label.propagate other } if labeled?
   end
 
   def has_label?(label)
