@@ -5,6 +5,7 @@ class HighScoresController < ApplicationController
   # GET /high_scores
   def index
     puts "Current user #{@current_user}"
+    puts "Current user attempt 2 #{Authpwh::current_user}"
     @high_scores = HighScore.all
   end
 

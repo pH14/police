@@ -35,54 +35,49 @@ module Police
         check_dataflow(:read, user)
       end
 
-      private
-
       def label_for_action(action)
         case action
         when :read
-          puts "Setting a read label. its payload is #{self}"
           Police::DataFlow::ReadRestriction.new self
-        when :write
-          Police::DataFlow::WriteRestriction.new
         else
           raise PoliceError, "no known label for action #{action}"
         end
       end
 
       def attach_policy(policy)
-        # puts "Attaching policy #{policy}. Protected actions are #{policy.protected_actions}"
         policy.protected_fields.each do |field|
-          policy.protected_actions.each do |action|
-            # puts "Placing read label on #{field}"
-            attach_label field, label_for_action(action)
+          if policy.protected_actions.include? :read
+            attach_label field, label_for_action(:read)
           end
         end
       end
 
       def enforce_policy(policy, action, user=nil)
+        return true if not policy.protects_action? action
         results = []
 
-        puts "Going to try to enforce a policy! Woohoo! #{self.class.police_policies}"
+        if user.nil?
+          policy.protected_fields.each do |field|
+            field_with_labels = self
 
-        return true if not policy.protects_action? action
-
-        puts "Enforcing policy #{policy}, action #{action}. Given user #{user}"
-
-        policy.protected_fields.each do |field|
-
-          if user.nil?
-            send(field).labels.each do |label|
-              user = label.payload if label.is_a? Police::DataFlow::UserSupplied
-              puts "Grabbed UserSupplied label from #{user}. Will use this label for policies"
+            if field.kind_of? Enumerable
+              field.each do |subfield|
+                field_with_labels = field_with_labels.send(subfield)
+              end
+            else
+              field_with_labels = send(field)
             end
-          end
 
-          # puts "The block will be #{policy.action_hash[action]}"
-          results << policy.action_hash[action].call(self, user)
+            field_with_labels.labels.each do |label|
+              user = label.payload if label.is_a? Police::DataFlow::UserSupplied
+              break
+            end
+
+            break if user
+          end
         end
 
-        puts "Results are #{results}"
-
+        results << policy.action_hash[action].call(self, user)
         results.all? { |r| r == true }
       end
 
@@ -103,12 +98,10 @@ module Police
       end
 
       def check_dataflow_save
-        puts "Check data flow save"
         check_dataflow(:write)
       end
 
       def check_dataflow_update
-        puts "Check data flow update"
         check_dataflow(:write)
       end
 
@@ -116,11 +109,25 @@ module Police
       # Attaching a label also attaches a security context that will
       # provide the necessary data flow
       def attach_label(field, label)
-        puts "Trying to attach a label to #{field}. I am a #{self.class}"
-        send(field).label_with label
+        if field.kind_of? Enumerable
+          to_label_object = self
+
+          field.each do |subfield|
+            if to_label_object
+              to_label_object = to_label_object.send(subfield)
+            else
+              return
+            end
+          end
+
+          to_label_object.label_with label
+        else
+          send(field).label_with label
+        end
       end
     end
   end
 end
 
 ActiveRecord::Base.send :include, Police::Model::DSL
+puts "Included Police into ActiveRecord"

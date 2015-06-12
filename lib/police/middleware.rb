@@ -1,5 +1,5 @@
 module Police
-  module Middleware
+  class Middleware
     include Rack
     include ActionView
 
@@ -10,10 +10,10 @@ module Police
     def label_hash(h, label)
       h.each do |k, v|
         if v.is_a? Hash
-          puts "Rack: labeling a hash #{h}"
+          # puts "Rack: labeling a hash #{h}"
           v = label_hash v, label
         else
-          puts "Rack: labeling value #{v}"
+          # puts "Rack: labeling value #{v}"
           v.label_with label
         end
       end
@@ -22,27 +22,28 @@ module Police
     end
 
     def call(env)
+      # puts "POLICE MIDDLEWARE DOING STUFF"
       user_supplied_label = Police::DataFlow::UserSupplied.new
 
       req = Rack::Request.new(env)
 
-      puts "Request params #{req.params}"
+      # puts "Request params #{req.params}"
 
       req.params.each do |k, v|
         if v.is_a? Hash
-          puts "Rack: labeling a hash #{v} start"
+          # puts "Rack: labeling a hash #{v} start"
           v = label_hash(v, user_supplied_label)
           req.update_param k, v
         else
-          puts "Rack: labeling #{k}'s value #{v}"
+          # puts "Rack: labeling #{k}'s value #{v}"
           req.update_param k, v.label_with(user_supplied_label)
         end
       end
 
-      ['QUERY_STRING', 'REQUEST_URI', 'ORIGINAL_FULLPATH', 'rack.request.query_string', 'rack.request.form_vars'].each do |user_supplied_data|
-        puts "Labeling env param #{user_supplied_data}, #{env[user_supplied_data]}"
-        env[user_supplied_label].label_with user_supplied_label
-      end
+      # ['QUERY_STRING', 'REQUEST_URI', 'ORIGINAL_FULLPATH', 'rack.request.query_string', 'rack.request.form_vars'].each do |user_supplied_data|
+      #   # puts "Labeling env param #{user_supplied_data}, #{env[user_supplied_data]}"
+      #   env[user_supplied_data].label_with user_supplied_label
+      # end
 
       # ['rack.request.form_hash', 'rack.request.query_hash'].each do |user_supplied_data|
       #   puts "Labeling env hash #{user_supplied_data}, #{env[user_supplied_data]}"
@@ -75,7 +76,10 @@ module Police
         end
       end
 
-      # puts "Status is #{status}, Headers are #{headers}, #{headers.tainted?}"
+      # puts "Status is #{status}, #{response}"
+      # response.each do |v|
+      # 	puts v
+      # end
       return status, headers, response
     end
   end

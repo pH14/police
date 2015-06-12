@@ -7,7 +7,6 @@ module Police
     end
 
     def set_user
-      puts "Controller setting the user! Set to #{current_user}"
       request.env['police.set_user'].call current_user
     end
   end

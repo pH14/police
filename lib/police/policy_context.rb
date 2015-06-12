@@ -1,12 +1,10 @@
 module Police
   module DataFlow
     class SecureContext
-      def infect(other, source)
-        source.propagate_labels other
-      end
-
       @@simple_methods =
       [# Rails, SafeBuffer
+       "h",
+       "html_safe",
        "concat",
        "safe_concat",
        "initialize_copy",
@@ -53,7 +51,6 @@ module Police
                               "lte",      # <=
                               "backtick", # `
                               "invert",   # ~
-                              # "equals",   # ==
                               "not_equals", # !=
                               "similar",  # ===
                               "match",    # =~
@@ -68,6 +65,10 @@ module Police
                               "exponent",    # **
                               "uplus",       # +@
                               "uminus"]      # -@
+
+      def infect(other, source)
+        source.propagate_labels other
+      end
 
       def initialize
         # This doesn't yet cover when slice returns several arguments, not just one
@@ -145,8 +146,9 @@ module Police
           end
         end
       end
-
     end # SecureContext
+
+    SecureContextSingleton = SecureContext.new
   end # End DataFlow
 end # Police
 
@@ -173,19 +175,3 @@ class String
     ret
   end
 end
-
-# class Array
-#   alias_method :old_pack, :pack
-
-#   def pack(directives)
-#     ret = old_pack directives
-
-#     self.each do |a|
-#       Rubinius::Type.infect ret, a
-#     end
-
-#     Rubinius::Type.infect ret, directives
-
-#     ret
-#   end
-# end
